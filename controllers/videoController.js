@@ -45,14 +45,40 @@ try{
     })
 }
 }
+//here we will update all videos
 const updateVideo = async (req , res )=>{
 //here we will change video title description 
     try{
-const {title , description ,category} = req.body;
+const {title , description ,category,tags} = req.body;
 
 const videoId =  req.params.id;
 
-let video= await
+let video= await videoModel.findOne({ _id: req.params.id });
+
+if(req.files && req.files.thumbnail){
+    await cloudinary.uploader.destroy(video.thumbnailId);
+    const thumbnailUpload = await cloudinary.uploader.upload(
+        req.files.thumbnail,{
+            tempFilePath,
+            folder:"thumbnails"}
+    )
+
+    video.thumbnailUrl = thumbnailUpload.secure_url;
+    video.thumbnailId = thumbnailUpload.public_id
+}
+video.title = title || video.title;
+video.description = description || video.description;
+video.category = category || video.category;
+video.tags = tags || video.tags;
+
+await video.save();
+
+//sending request
+res.status(201).json({
+    success:true,
+    message:"update video details "
+})
+
 //find video from data base 
 }catch(err){
     console.log(err);
@@ -62,4 +88,120 @@ let video= await
     })
 }
 }
-export {uploadVideo ,updateVideo};
+const deleteVideo = async(req , res)=>{
+try{
+const videoId = req.params.id;
+
+let video = await videoModel.findOne(videoId);
+
+if(!video){
+    return res.status(404).json({error:"Video not found!"})
+}
+//delete video from cloudinary
+await cloudinary.uploader.destroy(video.videoId,{resource_type:"video"});
+await cloudinary.uploader.destroy(video.thumbnailId);
+await videoModel.findByIdAndDelete(videoId);
+res.status(200).json({
+    success:true,
+    message:"video deleted successfully"
+})
+}catch(err){
+    console.log(err);
+    res.status(500).json({
+        success:true,
+        message:err.message
+    })
+}
+}
+// get all video 
+
+const getAllVideo = async (req , res )=>{
+try{
+const video = await videoModel.find({});
+res.status(200).json({
+    success:true,
+    message:"Here is all videos",
+    video
+})
+}catch(err){
+    console.log(err);
+    res.status(500).json({
+        success:true,
+        message:err.message
+    }) 
+}
+}
+//get video by Id 
+const getVideoById = async (req , res)=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+//get video by category
+const getVideoByCategory = async(req , res)=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+//get video by tags
+const getVideoByTags = async (req , res)=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+//get all liked video
+const liked = async(req,res)=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+
+//get all disLiked video
+const disLiked = async(req,res)=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+//get my video
+const myVideos=  async (req , res )=>{
+    try{
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:true,
+            message:err.message
+        }) 
+    }
+}
+export {uploadVideo ,updateVideo,deleteVideo, getAllVideo,getVideoById,getVideoByCategory, getVideoByTags,liked ,disLiked,myVideos};
